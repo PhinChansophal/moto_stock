@@ -1,300 +1,1238 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Video Cut Studio</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=Noto+Sans+Khmer:wght@600;700&display=swap" rel="stylesheet">
-<style>
-:root{--bg:#e9ecef;--card:#fff;--ink:#161a20;--mute:#5a6470;--line:#d3d8de;--red:#d2232a;--chip:#f1f3f5;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171c;--card:#1e232a;--ink:#eef1f4;--mute:#9aa4af;--line:#323a44;--chip:#272d35;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#14171c;--card:#1e232a;--ink:#eef1f4;--mute:#9aa4af;--line:#323a44;--chip:#272d35;color-scheme:dark}
-*{box-sizing:border-box}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 Barlow,"Noto Sans Khmer",system-ui,sans-serif}
-button,input,select{font:inherit;color:inherit}
-h1{font:700 28px/1 "Barlow Condensed",Impact,sans-serif;margin:0}
-h2{font:700 19px/1 "Barlow Condensed",Impact,sans-serif;margin:0 0 8px}
-.wrap{max-width:1100px;margin:auto;padding:14px;display:grid;gap:14px}
-@media(min-width:860px){.wrap{grid-template-columns:minmax(300px,420px) 1fr;align-items:start}.pv{position:sticky;top:14px}}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;gap:10px}
-.pv{display:grid;gap:10px;justify-items:center}
-canvas{max-width:100%;max-height:68vh;background:#000;border-radius:10px;display:block}
-.btn{border:1.5px solid var(--line);background:var(--card);border-radius:8px;padding:9px 14px;font-weight:600;cursor:pointer}
-.btn.red{background:var(--red);border-color:var(--red);color:#fff}
-.btn.sm{padding:6px 10px;font-size:14px}
-.btn:disabled{opacity:.45;cursor:not-allowed}
-.btn:focus-visible,input:focus-visible,select:focus-visible,.chip:focus-visible{outline:3px solid var(--red);outline-offset:2px}
-.chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{border:1.5px solid var(--line);background:var(--chip);border-radius:8px;padding:7px 11px;font-weight:600;cursor:pointer;display:flex;gap:6px;align-items:center}
-.chip.on{border-color:var(--red);background:var(--card);box-shadow:inset 0 0 0 1px var(--red)}
-.dot{width:12px;height:12px;border-radius:50%;display:inline-block}
-label{display:grid;gap:3px;font-weight:600;font-size:14px}
-input[type=text],select{border:1.5px solid var(--line);background:var(--bg);border-radius:8px;padding:9px;font-weight:400}
-input[type=range]{width:100%;accent-color:var(--red)}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.hint{color:var(--mute);font-size:13px}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.seg{display:flex;justify-content:space-between;align-items:center;background:var(--chip);border-radius:8px;padding:6px 10px}
-.bar{height:8px;background:var(--chip);border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;width:0;background:var(--red)}
-#toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;max-width:90vw;text-align:center}
-#toast.show{opacity:1}
-@media(prefers-reduced-motion:reduce){#toast{transition:none}}
-</style></head>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Video Cut Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=Noto+Sans+Khmer:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+         :root {
+            --bg: #e9ecef;
+            --card: #fff;
+            --ink: #161a20;
+            --mute: #5a6470;
+            --line: #d3d8de;
+            --red: #d2232a;
+            --chip: #f1f3f5;
+            color-scheme: light;
+            box-sizing: border-box;
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px)
+        }
+        
+        @media(prefers-color-scheme:dark) {
+             :root:not([data-theme="light"]) {
+                --bg: #14171c;
+                --card: #1e232a;
+                --ink: #eef1f4;
+                --mute: #9aa4af;
+                --line: #323a44;
+                --chip: #272d35;
+                color-scheme: dark
+            }
+        }
+        
+         :root[data-theme="dark"] {
+            --bg: #14171c;
+            --card: #1e232a;
+            --ink: #eef1f4;
+            --mute: #9aa4af;
+            --line: #323a44;
+            --chip: #272d35;
+            color-scheme: dark
+        }
+        
+        * {
+            box-sizing: border-box
+        }
+        
+        html {
+            scroll-padding-top: env(safe-area-inset-top, 0px)
+        }
+        
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font: 16px/1.4 Barlow, "Noto Sans Khmer", system-ui, sans-serif
+        }
+        
+        button,
+        input,
+        select {
+            font: inherit;
+            color: inherit
+        }
+        
+        h1 {
+            font: 700 28px/1 "Barlow Condensed", Impact, sans-serif;
+            margin: 0
+        }
+        
+        h2 {
+            font: 700 19px/1 "Barlow Condensed", Impact, sans-serif;
+            margin: 0 0 8px
+        }
+        
+        .wrap {
+            width: 100%;
+            max-width: 1100px;
+            margin: auto;
+            padding: 14px;
+            display: grid;
+            gap: 14px
+        }
+        
+        @media(min-width:860px) {
+            .wrap {
+                grid-template-columns: minmax(300px, 420px) 1fr;
+                align-items: start
+            }
+            .pv {
+                position: sticky;
+                top: 14px
+            }
+        }
+        
+        .panel {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 14px;
+            display: grid;
+            gap: 10px
+        }
+        
+        .pv {
+            display: grid;
+            gap: 10px;
+            justify-items: center
+        }
+        
+        .pv.dragover canvas {
+            outline: 3px solid var(--red);
+            outline-offset: 3px
+        }
+        
+        canvas {
+            width: 100%;
+            height: auto;
+            max-height: 76svh;
+            object-fit: contain;
+            background: #000;
+            border-radius: 10px;
+            display: block
+        }
+        
+        @media(max-width:600px) {
+            .wrap {
+                padding: 10px;
+                gap: 10px
+            }
+            .panel {
+                padding: 12px;
+                gap: 9px
+            }
+            .pv {
+                gap: 8px
+            }
+        }
+        
+        .btn {
+            border: 1.5px solid var(--line);
+            background: var(--card);
+            border-radius: 8px;
+            padding: 9px 14px;
+            font-weight: 600;
+            cursor: pointer
+        }
+        
+        .btn.red {
+            background: var(--red);
+            border-color: var(--red);
+            color: #fff
+        }
+        
+        .btn.sm {
+            padding: 6px 10px;
+            font-size: 14px
+        }
+        
+        .btn:disabled {
+            opacity: .45;
+            cursor: not-allowed
+        }
+        
+        .btn:focus-visible,
+        input:focus-visible,
+        select:focus-visible,
+        .chip:focus-visible {
+            outline: 3px solid var(--red);
+            outline-offset: 2px
+        }
+        
+        .chips {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap
+        }
+        
+        .chip {
+            border: 1.5px solid var(--line);
+            background: var(--chip);
+            border-radius: 8px;
+            padding: 7px 11px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            gap: 6px;
+            align-items: center
+        }
+        
+        .chip.on {
+            border-color: var(--red);
+            background: var(--card);
+            box-shadow: inset 0 0 0 1px var(--red)
+        }
+        
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block
+        }
+        
+        label {
+            display: grid;
+            gap: 3px;
+            font-weight: 600;
+            font-size: 14px
+        }
+        
+        input[type=text],
+        input[type=number],
+        select {
+            border: 1.5px solid var(--line);
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 9px;
+            font-weight: 400
+        }
+        
+        input[type=range] {
+            width: 100%;
+            accent-color: var(--red)
+        }
+        
+        .two {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px
+        }
+        
+        .hint {
+            color: var(--mute);
+            font-size: 13px
+        }
+        
+        .row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center
+        }
+        
+        .seg {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--chip);
+            border-radius: 8px;
+            padding: 6px 10px
+        }
+        
+        .bar {
+            height: 8px;
+            background: var(--chip);
+            border-radius: 4px;
+            overflow: hidden
+        }
+        
+        .bar i {
+            display: block;
+            height: 100%;
+            width: 0;
+            background: var(--red)
+        }
+        
+        #toast {
+            position: fixed;
+            left: 50%;
+            bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+            transform: translateX(-50%);
+            background: var(--ink);
+            color: var(--bg);
+            padding: 10px 16px;
+            border-radius: 8px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s;
+            z-index: 20;
+            max-width: 90vw;
+            text-align: center
+        }
+        
+        #toast.show {
+            opacity: 1
+        }
+        
+        @media(prefers-reduced-motion:reduce) {
+            #toast {
+                transition: none
+            }
+        }
+    </style>
+</head>
+
 <body>
-<div class="wrap">
-<div class="pv">
- <h1>Video Cut Studio</h1>
- <canvas id="cv" width="720" height="1280" aria-label="Video preview"></canvas>
- <div class="row"><button class="btn" id="play" disabled>Play cut</button><span class="hint" id="info">Upload a video to start</span></div>
-</div>
-<div style="display:grid;gap:14px">
- <div class="panel"><h2>1. Video</h2>
-  <div class="row"><button class="btn red" id="up">Choose video</button><span class="hint" id="fn"></span></div>
-  <input id="vf" type="file" accept="video/*" hidden>
-  <div class="row"><label style="flex:1">Fit<select id="fit"><option value="cover">Fill frame (crop)</option><option value="contain">Fit whole video (blur background)</option></select></label></div>
- </div>
- <div class="panel"><h2>2. Format</h2><div class="chips" id="fmts"></div></div>
- <div class="panel"><h2>3. Template</h2><div class="chips" id="tpls"></div>
-  <label>Headline<input type="text" id="fh" maxlength="30" placeholder="Uses template title"></label>
-  <label>Extra line<input type="text" id="fs" maxlength="40" placeholder="Down payment from $100"></label>
-  <div class="two"><label>Price<input type="text" id="fp" maxlength="14" placeholder="$1,850"></label><label>Phone<input type="text" id="fph" maxlength="24" placeholder="012 345 678"></label></div>
-  <label>Shop name<input type="text" id="fsh" maxlength="30" value="Sophal Reactions"></label>
-  <div class="row"><button class="btn sm" id="lg">Add logo</button><button class="btn sm" id="lgx" hidden>Remove logo</button></div>
-  <input id="lf" type="file" accept="image/*" hidden>
- </div>
- <div class="panel"><h2>4. Enhance</h2>
-  <div class="row"><button class="btn red" id="auto" disabled>Auto enhance</button><button class="btn sm" id="rst">Reset</button></div>
-  <span class="hint" id="ah">One tap checks your video and fixes brightness, contrast, color and sharpness. Then fine-tune below.</span>
-  <div class="two">
-  <label>Brightness <span id="veb">0</span><input type="range" id="eb" min="-50" max="50" value="0"></label>
-  <label>Contrast <span id="vec">0</span><input type="range" id="ec" min="-50" max="50" value="0"></label>
-  <label>Color <span id="ves">0</span><input type="range" id="es" min="-50" max="50" value="0"></label>
-  <label>Warmth <span id="vew">0</span><input type="range" id="ew" min="-50" max="50" value="0"></label>
-  <label>Sharpness <span id="vek">0</span><input type="range" id="ek" min="0" max="100" value="0"></label></div>
-  <label style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="ea" checked> Clean audio: reduce rumble and hiss, even out volume</label>
- </div>
- <div class="panel"><h2>5. Cut</h2>
-  <label>Start <span id="ts">0:00.0</span><input type="range" id="rs" min="0" max="1" step="0.05" value="0" disabled></label>
-  <label>End <span id="te">0:00.0</span><input type="range" id="re" min="0" max="1" step="0.05" value="1" disabled></label>
-  <div class="row"><button class="btn sm" id="addcut" disabled>Add this cut</button><button class="btn sm" id="clr" disabled>Clear cuts</button></div>
-  <div id="segs" style="display:grid;gap:6px"></div>
-  <span class="hint" id="tot">No cut added: the whole range above is exported. Add several cuts to join them in order.</span>
- </div>
- <div class="panel"><h2>6. Export</h2>
-  <div class="two"><label>Resolution<select id="er"><option value="1">HD 720p (faster)</option><option value="1.5">Full HD 1080p</option></select></label><label>Quality<select id="eq"><option value="4000000">Standard</option><option value="8000000" selected>High</option><option value="12000000">Maximum</option></select></label></div>
-  <button class="btn red" id="go" disabled>Export video</button>
-  <div class="row"><button class="btn red" id="share" hidden>Save / share to phone</button><a class="btn" id="dl" hidden>Download video</a></div>
-  <div class="bar" id="bw" hidden><i id="bi"></i></div>
-  <span class="hint">Export runs in real time, so a 30 second video takes about 30 seconds. When it finishes, tap Save / share to phone and choose Save Video or your Gallery app, or tap Download video. The browser may save it to Downloads first.</span>
- </div>
-</div>
-</div>
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="sharp" color-interpolation-filters="sRGB"><feConvolveMatrix id="cm" order="3" kernelMatrix="0 0 0 0 1 0 0 0 0" preserveAlpha="true"/></filter></svg>
-<div id="toast" role="status"></div>
-<script>
-const $=s=>document.querySelector(s);
-const cv=$('#cv'),ctx=cv.getContext('2d');
-const FMT={'9:16':[720,1280,'TikTok / Reels / Stories'],'1:1':[720,720,'Facebook / IG post'],'4:5':[720,900,'IG / Facebook feed'],'16:9':[1280,720,'YouTube / Facebook']};
-const TPL={
- arrival:{n:'New Arrival',label:'NEW ARRIVAL',style:'banner',c1:'#d2232a',c2:'#ffffff'},
- promo:{n:'Promotion',label:'SPECIAL PROMO',style:'banner',c1:'#ffc21a',c2:'#161a20'},
- install:{n:'Installment',label:'LOW DOWN PAYMENT',style:'card',c1:'#1e5aa8',c2:'#ffffff'},
- ready:{n:'Ready Stock',label:'READY STOCK',style:'ribbon',c1:'#13a05a',c2:'#ffffff'},
- clean:{n:'Clean',label:'',style:'minimal',c1:'#d2232a',c2:'#ffffff'},
- none:{n:'No overlay',label:'',style:'none',c1:'#888',c2:'#fff'}
-};
-let fmt='9:16',tpl='arrival',fit='cover',segs=[],logo=null,dur=0,previewing=false,endT=0,exporting=false,objUrl=null,AU=null;
-let exportUrl=null,exportFile=null,lastExportFrame=0;
-const vid=document.createElement('video');vid.playsInline=true;vid.preload='auto';
-vid.style.cssText='position:fixed;width:1px;height:1px;opacity:0;pointer-events:none';document.body.appendChild(vid);
-function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),3000)}
-const fmtT=s=>{s=Math.max(0,s);return Math.floor(s/60)+':'+(s%60).toFixed(1).padStart(4,'0')};
+    <div class="wrap">
+        <div class="pv">
+            <h1>Video Cut Studio</h1>
+            <canvas id="cv" width="720" height="1280" aria-label="Video preview"></canvas>
+            <div class="row"><button class="btn" id="play" title="Play all selected cuts (Space)" disabled>Play cuts</button><span class="hint" id="info">Choose or drop an image or video to start</span></div>
+        </div>
+        <div style="display:grid;gap:14px">
+            <div class="panel">
+                <h2>1. Media</h2>
+                <div class="row"><button class="btn red" id="up">Choose video</button><button class="btn" id="upi">Choose image</button><span class="hint" id="fn"></span></div>
+                <input id="vf" type="file" accept="video/*" hidden>
+                <input id="if" type="file" accept="image/*" hidden>
+                <label id="ilabel" hidden>Image duration (seconds)<input id="itime" type="number" min="1" max="60" step="1" value="5"></label>
+                <div class="row"><label style="flex:1">Fit<select id="fit"><option value="cover">Fill frame (crop)</option><option value="contain">Fit whole media (blur background)</option></select></label></div>
+                <span class="hint">Text, layout and enhancement settings auto-save on this device. Re-select media, logo and cuts after refreshing.</span>
+            </div>
+            <div class="panel">
+                <h2>2. Format</h2>
+                <div class="chips" id="fmts"></div>
+            </div>
+            <div class="panel">
+                <h2>3. Template</h2>
+                <div class="chips" id="tpls"></div>
+                <label>Headline<input type="text" id="fh" maxlength="30" placeholder="Uses template title"></label>
+                <label>Extra line<input type="text" id="fs" maxlength="40" placeholder="Down payment from $100"></label>
+                <div class="two"><label>Price<input type="text" id="fp" maxlength="14" placeholder="$1,850"></label><label>Phone<input type="text" id="fph" maxlength="24" placeholder="012 345 678"></label></div>
+                <label>Shop name<input type="text" id="fsh" maxlength="30" value="Sophal Reactions"></label>
+                <div class="row"><button class="btn sm" id="lg">Add logo</button><button class="btn sm" id="lgx" hidden>Remove logo</button></div>
+                <input id="lf" type="file" accept="image/*" hidden>
+            </div>
+            <div class="panel">
+                <h2>4. Enhance</h2>
+                <div class="row"><button class="btn red" id="auto" disabled>Auto enhance</button><button class="btn sm" id="rst">Reset</button></div>
+                <span class="hint" id="ah">One tap checks your image or video and adjusts brightness, contrast, color and sharpness. Then fine-tune below.</span>
+                <div class="two">
+                    <label>Brightness <span id="veb">0</span><input type="range" id="eb" min="-50" max="50" value="0"></label>
+                    <label>Contrast <span id="vec">0</span><input type="range" id="ec" min="-50" max="50" value="0"></label>
+                    <label>Color <span id="ves">0</span><input type="range" id="es" min="-50" max="50" value="0"></label>
+                    <label>Warmth <span id="vew">0</span><input type="range" id="ew" min="-50" max="50" value="0"></label>
+                    <label>Sharpness <span id="vek">0</span><input type="range" id="ek" min="0" max="100" value="0"></label></div>
+                <label style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="ea" checked> Clean audio: reduce rumble and hiss, even out volume</label>
+            </div>
+            <div class="panel">
+                <h2>5. Cut</h2>
+                <label>Start <span id="ts">0:00.0</span><input type="range" id="rs" min="0" max="1" step="0.05" value="0" disabled></label>
+                <label>End <span id="te">0:00.0</span><input type="range" id="re" min="0" max="1" step="0.05" value="1" disabled></label>
+                <div class="row"><button class="btn sm" id="addcut" disabled>Add this cut</button><button class="btn sm" id="clr" disabled>Clear cuts</button></div>
+                <div id="segs" style="display:grid;gap:6px"></div>
+                <span class="hint" id="tot">No cut added: the whole range above is exported. Add several cuts to join them in order.</span>
+            </div>
+            <div class="panel">
+                <h2>6. Export</h2>
+                <div class="two"><label>Resolution<select id="er"><option value="1">HD 720p (faster)</option><option value="1.5" selected>Full HD 1080p</option></select></label><label>Frame rate<select id="fps"><option value="30" selected>30 fps</option><option value="60">60 fps (smoother)</option></select></label></div>
+                <label>Quality<select id="eq"><option value="4000000">Standard</option><option value="8000000" selected>High</option><option value="12000000">Maximum</option></select></label>
+                <button class="btn red" id="go" title="Export video (Ctrl+Enter)" disabled>Export video</button>
+                <div class="row"><button class="btn red" id="share" hidden>Save / share to phone</button><a class="btn" id="dl" hidden>Download video</a></div>
+                <div class="bar" id="bw" hidden><i id="bi"></i></div>
+                <span class="hint">TikTok: use 9:16 and Full HD. Choose 60 fps when your source is 60 fps. Export runs in real time. MP4 is used when supported; otherwise the browser downloads WebM, which may need conversion before posting. On phone, use Save / share to phone or Download video.</span>
+            </div>
+        </div>
+    </div>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="sharp" color-interpolation-filters="sRGB"><feConvolveMatrix id="cm" order="3" kernelMatrix="0 0 0 0 1 0 0 0 0" preserveAlpha="true"/></filter></svg>
+    <div id="toast" role="status"></div>
+    <script>
+        const $ = s => document.querySelector(s);
+        const cv = $('#cv'),
+            ctx = cv.getContext('2d');
+        const FMT = {
+            '9:16': [720, 1280, 'TikTok / Reels / Stories'],
+            '1:1': [720, 720, 'Facebook / IG post'],
+            '4:5': [720, 900, 'IG / Facebook feed'],
+            '16:9': [1280, 720, 'YouTube / Facebook']
+        };
+        const TPL = {
+            arrival: {
+                n: 'New Arrival',
+                label: 'NEW ARRIVAL',
+                style: 'banner',
+                c1: '#d2232a',
+                c2: '#ffffff'
+            },
+            promo: {
+                n: 'Promotion',
+                label: 'SPECIAL PROMO',
+                style: 'banner',
+                c1: '#ffc21a',
+                c2: '#161a20'
+            },
+            install: {
+                n: 'Installment',
+                label: 'LOW DOWN PAYMENT',
+                style: 'card',
+                c1: '#1e5aa8',
+                c2: '#ffffff'
+            },
+            ready: {
+                n: 'Ready Stock',
+                label: 'READY STOCK',
+                style: 'ribbon',
+                c1: '#13a05a',
+                c2: '#ffffff'
+            },
+            clean: {
+                n: 'Clean',
+                label: '',
+                style: 'minimal',
+                c1: '#d2232a',
+                c2: '#ffffff'
+            },
+            none: {
+                n: 'No overlay',
+                label: '',
+                style: 'none',
+                c1: '#888',
+                c2: '#fff'
+            }
+        };
+        let fmt = '9:16',
+            tpl = 'arrival',
+            fit = 'cover',
+            segs = [],
+            logo = null,
+            still = null,
+            mediaType = '',
+            dur = 0,
+            previewing = false,
+            exporting = false,
+            objUrl = null,
+            AU = null;
+        let exportUrl = null,
+            exportFile = null,
+            lastExportFrame = 0;
+        const vid = document.createElement('video');
+        vid.playsInline = true;
+        vid.preload = 'auto';
+        vid.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none';
+        document.body.appendChild(vid);
 
-/* chips */
-function chips(){
- $('#fmts').innerHTML=Object.entries(FMT).map(([k,v])=>`<button class="chip${k===fmt?' on':''}" data-f="${k}" title="${v[2]}">${k}<span class="hint">${v[2]}</span></button>`).join('');
- $('#tpls').innerHTML=Object.entries(TPL).map(([k,v])=>`<button class="chip${k===tpl?' on':''}" data-t="${k}"><span class="dot" style="background:${v.c1}"></span>${v.n}</button>`).join('');
- $('#fh').placeholder=TPL[tpl].label||'Headline';
-}
-document.addEventListener('click',e=>{
- const f=e.target.closest('[data-f]'),t=e.target.closest('[data-t]');
- if(f){fmt=f.dataset.f;setSize();chips()}
- if(t){tpl=t.dataset.t;chips()}
-});
+        function toast(t) {
+            const e = $('#toast');
+            e.textContent = t;
+            e.classList.add('show');
+            clearTimeout(toast.t);
+            toast.t = setTimeout(() => e.classList.remove('show'), 3000)
+        }
+        const fmtT = s => {
+            s = Math.max(0, s);
+            return Math.floor(s / 60) + ':' + (s % 60).toFixed(1).padStart(4, '0')
+        };
+        const PREF_KEY = 'video-cut-studio.preferences.v1';
+        const PREF_TEXT = ['fh', 'fs', 'fp', 'fph', 'fsh'];
+        const PREF_RANGES = {
+            eb: [-50, 50],
+            ec: [-50, 50],
+            es: [-50, 50],
+            ew: [-50, 50],
+            ek: [0, 100]
+        };
 
-/* drawing */
-const F=s=>`700 ${s}px "Barlow Condensed","Noto Sans Khmer",Impact,sans-serif`;
-function rr(c,x,y,w,h,r){c.beginPath();c.roundRect?c.roundRect(x,y,w,h,r):c.rect(x,y,w,h)}
-function txt(c,s,x,y,size,fill,align,maxW){let z=size;c.font=F(z);const w=c.measureText(s).width;if(w>maxW){z=size*maxW/w;c.font=F(z)}c.fillStyle=fill;c.textAlign=align||'left';c.textBaseline='middle';c.fillText(s,x,y)}
-function overlay(c,w,h){
- const T=TPL[tpl];if(T.style==='none')return;
- const u=w/720,tall=h/w>1.5,tm=tall?h*.08:h*.04,bm=tall?h*.13:h*.04;
- const head=$('#fh').value.trim()||T.label,sub=$('#fs').value.trim(),price=$('#fp').value.trim(),phone=$('#fph').value.trim(),shop=$('#fsh').value.trim();
- const y0=h-bm-110*u,card=T.style==='card';
- c.save();
- if(!card){const g=c.createLinearGradient(0,y0-120*u,0,h);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.85)');c.fillStyle=g;c.fillRect(0,y0-120*u,w,h-y0+120*u)}
- if(card){c.fillStyle='#fff';rr(c,w*.04,y0-18*u,w*.92,146*u,18*u);c.fill()}
- /* top */
- if(T.style==='banner'||card){if(head){c.fillStyle=T.c1;rr(c,w*.06,tm,w*.88,84*u,14*u);c.fill();txt(c,head,w/2,tm+44*u,52*u,T.c2,'center',w*.8)}}
- if(T.style==='ribbon'&&head){c.save();c.translate(100*u,100*u);c.rotate(-Math.PI/4);c.fillStyle=T.c1;c.fillRect(-210*u,-32*u,420*u,64*u);txt(c,head,0,2*u,38*u,T.c2,'center',330*u);c.restore()}
- /* extra line */
- if(sub){c.shadowColor='rgba(0,0,0,.8)';c.shadowBlur=8*u;txt(c,sub,w/2,y0-card*0-60*u-(card?10*u:0),40*u,'#fff','center',w*.9);c.shadowBlur=0}
- /* bottom */
- const dark=card?'#161a20':'#fff',lx=w*.08;let tx=lx;
- if(logo){const k=76*u/Math.max(logo.width,logo.height);const lw=logo.width*k,lh=logo.height*k;c.drawImage(logo,lx,y0+(card?4:0)+(100*u-lh)/2,lw,lh);tx=lx+lw+14*u}
- const room=w*.92-tx-(price?190*u:0);
- if(shop)txt(c,shop,tx,y0+(card?18:28)*u,40*u,dark,'left',room);
- if(phone)txt(c,phone,tx,y0+(card?66:76)*u,32*u,card?T.c1:'#ffe9a8','left',room);
- if(price){c.font=F(60*u);const pw=Math.min(c.measureText(price).width+44*u,w*.42),px=w*.94-pw;
-  if(card){txt(c,price,w*.94,y0+46*u,64*u,T.c1,'right',w*.42)}
-  else{c.fillStyle=T.c1;rr(c,px,y0,pw,100*u,16*u);c.fill();txt(c,price,px+pw/2,y0+52*u,60*u,T.c2,'center',pw-24*u)}}
- c.restore();
-}
-function draw(now){
- if(exporting&&now-lastExportFrame<1000/30){requestAnimationFrame(draw);return}
- if(exporting)lastExportFrame=now;
- const w=cv.width,h=cv.height;ctx.fillStyle='#10141a';ctx.fillRect(0,0,w,h);
- if(vid.videoWidth){
-  const vw=vid.videoWidth,vh=vid.videoHeight,kc=Math.max(w/vw,h/vh),kf=Math.min(w/vw,h/vh);
-  const EF=enhFilter();if(fit==='cover'){ctx.save();if(EF)ctx.filter=EF;ctx.drawImage(vid,(w-vw*kc)/2,(h-vh*kc)/2,vw*kc,vh*kc);ctx.restore()}
-  else{ctx.save();if('filter' in ctx)ctx.filter='blur(28px) brightness(.6)';ctx.drawImage(vid,(w-vw*kc)/2,(h-vh*kc)/2,vw*kc,vh*kc);ctx.restore();ctx.save();if(EF)ctx.filter=EF;ctx.drawImage(vid,(w-vw*kf)/2,(h-vh*kf)/2,vw*kf,vh*kf);ctx.restore()}
- }else{ctx.fillStyle='#2a323c';ctx.font=F(w/14);ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('Your video here',w/2,h/2)}
- if(vid.videoWidth)tint(ctx,w,h);overlay(ctx,w,h);
- if(previewing&&!exporting&&(vid.currentTime>=endT||vid.ended)){vid.pause();previewing=false;$('#play').textContent='Play cut'}
- requestAnimationFrame(draw);
-}
-document.fonts&&document.fonts.load('700 40px "Barlow Condensed"');
+        function savePreferences() {
+            const preferences = {
+                fmt,
+                tpl,
+                fit,
+                text: Object.fromEntries(PREF_TEXT.map(id => [id, $('#' + id).value])),
+                enhance: Object.fromEntries(Object.keys(PREF_RANGES).map(id => [id, +$('#' + id).value])),
+                audio: $('#ea').checked,
+                duration: +$('#itime').value,
+                resolution: $('#er').value,
+                fps: $('#fps').value,
+                quality: $('#eq').value
+            };
+            try {
+                localStorage.setItem(PREF_KEY, JSON.stringify(preferences));
+            } catch (_) {}
+        }
 
-/* audio routing so export is silent but keeps sound */
-function audio(){
- if(AU)return AU;const ac=new (window.AudioContext||window.webkitAudioContext)();
- const src=ac.createMediaElementSource(vid),dest=ac.createMediaStreamDestination();
- const hp=ac.createBiquadFilter(),lp=ac.createBiquadFilter(),cp=ac.createDynamicsCompressor(),mk=ac.createGain(),lim=ac.createDynamicsCompressor();
- hp.type='highpass';lp.type='lowpass';lim.threshold.value=-2;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=.003;lim.release.value=.1;
- src.connect(hp);hp.connect(lp);lp.connect(cp);cp.connect(mk);mk.connect(lim);lim.connect(dest);lim.connect(ac.destination);
- AU={ac,src,dest,out:lim,hp,lp,cp,mk};applyAudio();return AU;
-}
+        function loadPreferences() {
+            try {
+                const preferences = JSON.parse(localStorage.getItem(PREF_KEY) || 'null');
+                if (!preferences) return;
+                if (FMT[preferences.fmt]) fmt = preferences.fmt;
+                if (TPL[preferences.tpl]) tpl = preferences.tpl;
+                if (['cover', 'contain'].includes(preferences.fit)) fit = preferences.fit;
+                $('#fit').value = fit;
+                for (const id of PREF_TEXT) {
+                    if (preferences.text && typeof preferences.text[id] === 'string') $('#' + id).value = preferences.text[id];
+                }
+                for (const [id, [min, max]] of Object.entries(PREF_RANGES)) {
+                    const value = Number(preferences.enhance && preferences.enhance[id]);
+                    if (Number.isFinite(value)) $('#' + id).value = Math.max(min, Math.min(max, value));
+                }
+                if (typeof preferences.audio === 'boolean') $('#ea').checked = preferences.audio;
+                const duration = Number(preferences.duration);
+                if (Number.isFinite(duration)) $('#itime').value = Math.max(1, Math.min(60, duration));
+                for (const [id, value] of[['er', preferences.resolution], ['fps', preferences.fps], ['eq', preferences.quality]]) {
+                    if (Array.from($('#' + id).options).some(option => option.value === String(value))) $('#' + id).value = value;
+                }
+            } catch (_) {}
+        }
 
-/* upload */
-$('#up').onclick=()=>$('#vf').click();
-$('#vf').onchange=e=>{
- const f=e.target.files[0];if(!f)return;
- if(objUrl)URL.revokeObjectURL(objUrl);objUrl=URL.createObjectURL(f);vid.src=objUrl;$('#fn').textContent=f.name;segs=[];renderSegs();
-};
-vid.onloadedmetadata=()=>{
- dur=vid.duration;for(const id of ['rs','re']){const r=$('#'+id);r.max=dur;r.disabled=false}
- $('#rs').value=0;$('#re').value=dur;vid.currentTime=0;
- for(const id of ['play','addcut','clr','go','auto'])$('#'+id).disabled=false;
- labels();$('#info').textContent=`${vid.videoWidth}x${vid.videoHeight}, ${fmtT(dur)}`;
-};
-vid.onerror=()=>toast('This video could not be opened. Try an MP4 file.');
-function labels(){$('#ts').textContent=fmtT(+$('#rs').value);$('#te').textContent=fmtT(+$('#re').value);total()}
-$('#rs').oninput=()=>{const r=$('#rs'),e=$('#re');if(+r.value>+e.value-.1)r.value=Math.max(0,+e.value-.1);vid.currentTime=+r.value;labels()};
-$('#re').oninput=()=>{const r=$('#rs'),e=$('#re');if(+e.value<+r.value+.1)e.value=Math.min(dur,+r.value+.1);vid.currentTime=Math.max(0,+e.value-.05);labels()};
-$('#fit').onchange=e=>fit=e.target.value;
+        const prefControls = '#fh,#fs,#fp,#fph,#fsh,#itime,#eb,#ec,#es,#ew,#ek,#ea,#fit,#er,#fps,#eq';
+        document.addEventListener('input', e => {
+            if (e.target.matches(prefControls)) savePreferences();
+        });
+        document.addEventListener('change', e => {
+            if (e.target.matches(prefControls)) savePreferences();
+        });
+        document.addEventListener('keydown', e => {
+            if (e.target.closest('input,select,textarea,[contenteditable="true"]')) return;
+            if (e.code === 'Space' && !$('#play').disabled && !$('#play').hidden) {
+                e.preventDefault();
+                $('#play').click();
+            } else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && !$('#go').disabled) {
+                e.preventDefault();
+                $('#go').click();
+            }
+        });
 
-/* cuts */
-function list(){return segs.length?segs:(dur?[{s:+$('#rs').value,e:+$('#re').value}]:[])}
-function total(){const t=list().reduce((a,g)=>a+g.e-g.s,0);if(dur)$('#tot').textContent=segs.length?`${segs.length} cut${segs.length>1?'s':''}, total ${fmtT(t)}`:`Exporting the range above: ${fmtT(t)}. Add several cuts to join them in order.`}
-function renderSegs(){
- $('#segs').innerHTML=segs.map((g,i)=>`<div class="seg"><span>Cut ${i+1}: ${fmtT(g.s)} to ${fmtT(g.e)}</span><button class="btn sm" data-x="${i}">Remove</button></div>`).join('');total();
-}
-$('#addcut').onclick=()=>{segs.push({s:+$('#rs').value,e:+$('#re').value});renderSegs()};
-$('#clr').onclick=()=>{segs=[];renderSegs()};
-$('#segs').onclick=e=>{const b=e.target.closest('[data-x]');if(b){segs.splice(+b.dataset.x,1);renderSegs()}};
+        /* chips */
+        function chips() {
+            $('#fmts').innerHTML = Object.entries(FMT).map(([k, v]) => `<button class="chip${k===fmt?' on':''}" data-f="${k}" title="${v[2]}">${k}<span class="hint">${v[2]}</span></button>`).join('');
+            $('#tpls').innerHTML = Object.entries(TPL).map(([k, v]) => `<button class="chip${k===tpl?' on':''}" data-t="${k}"><span class="dot" style="background:${v.c1}"></span>${v.n}</button>`).join('');
+            $('#fh').placeholder = TPL[tpl].label || 'Headline';
+        }
+        document.addEventListener('click', e => {
+            const f = e.target.closest('[data-f]'),
+                t = e.target.closest('[data-t]');
+            if (f) {
+                fmt = f.dataset.f;
+                setSize();
+                chips();
+                savePreferences()
+            }
+            if (t) {
+                tpl = t.dataset.t;
+                chips();
+                savePreferences()
+            }
+        });
 
-/* preview */
-$('#play').onclick=async()=>{
- if(previewing){vid.pause();previewing=false;$('#play').textContent='Play cut';return}
- const g=list()[0];if(!g)return;audio().ac.resume();
- vid.currentTime=g.s;endT=g.e;previewing=true;$('#play').textContent='Pause';try{await vid.play()}catch(_){previewing=false;$('#play').textContent='Play cut'}
-};
+        /* drawing */
+        const F = s => `700 ${s}px "Barlow Condensed","Noto Sans Khmer",Impact,sans-serif`;
 
-/* logo */
-$('#lg').onclick=()=>$('#lf').click();
-$('#lf').onchange=e=>{const f=e.target.files[0];if(!f)return;const i=new Image();i.onload=()=>{logo=i;$('#lgx').hidden=false};i.src=URL.createObjectURL(f)};
-$('#lgx').onclick=()=>{logo=null;$('#lgx').hidden=true};
+        function rr(c, x, y, w, h, r) {
+            c.beginPath();
+            c.roundRect ? c.roundRect(x, y, w, h, r) : c.rect(x, y, w, h)
+        }
 
-/* export */
-const seek=t=>new Promise(r=>{if(Math.abs(vid.currentTime-t)<.02)return r();vid.onseeked=()=>{vid.onseeked=null;r()};vid.currentTime=t});
-$('#go').onclick=async()=>{
- if(exporting||!dur)return;
- if(!window.MediaRecorder||!cv.captureStream){toast('This browser cannot record video. Try Chrome.');return}
- if(exportUrl){URL.revokeObjectURL(exportUrl);exportUrl=null;exportFile=null}
- $('#share').hidden=true;$('#dl').hidden=true;
- const L=list(),all=L.reduce((a,g)=>a+g.e-g.s,0);
- lastExportFrame=0;exporting=true;previewing=false;vid.pause();$('#go').disabled=true;$('#bw').hidden=false;$('#bi').style.width='0';$('#play').textContent='Play cut';
- let a,st,rec,restoreAudio=false;
- try{
-  a=audio();await a.ac.resume();a.out.disconnect(a.ac.destination);restoreAudio=true;
-  st=cv.captureStream(30);a.dest.stream.getAudioTracks().forEach(t=>st.addTrack(t));
-  const mt=['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9,opus','video/webm'].find(m=>MediaRecorder.isTypeSupported(m));
-  rec=new MediaRecorder(st,mt?{mimeType:mt,videoBitsPerSecond:+$('#eq').value}:{});const ch=[];
-  rec.ondataavailable=e=>e.data.size&&ch.push(e.data);
-  const done=new Promise((resolve,reject)=>{rec.onstop=resolve;rec.onerror=e=>reject(e.error||new Error('The browser could not record this video.'))});
-  rec.start(500);let doneT=0;
-  for(const g of L){
-   await seek(g.s);await vid.play();
-   await new Promise(res=>{const chk=()=>{const p=vid.currentTime-g.s;$('#bi').style.width=Math.min(100,(doneT+p)/all*100)+'%';if(vid.currentTime>=g.e||vid.ended)res();else requestAnimationFrame(chk)};chk()});
-   vid.pause();doneT+=g.e-g.s;
-  }
-  rec.stop();await done;
-  const type=rec.mimeType||'video/webm',ext=type.includes('mp4')?'mp4':'webm';
-  const filename=`${(TPL[tpl].n+'-'+fmt).replace(/[^\w]+/g,'-')}-${Date.now()}.${ext}`;
-  exportFile=new File(ch,filename,{type});exportUrl=URL.createObjectURL(exportFile);
-  const dl=$('#dl');dl.href=exportUrl;dl.download=filename;dl.hidden=false;
-  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[exportFile]}))$('#share').hidden=false;
-  toast('Export complete. Tap Save / share or Download video.');
- }catch(err){toast(err instanceof Error?'Export failed: '+err.message:'Export failed. Try a shorter video.')}
- finally{try{if(rec&&rec.state!=='inactive')rec.stop()}catch(_){}if(st)st.getVideoTracks().forEach(t=>t.stop());if(a&&restoreAudio)a.out.connect(a.ac.destination);exporting=false;$('#go').disabled=false;$('#bw').hidden=true;vid.pause()}
-};
-$('#share').onclick=async()=>{
- if(!exportFile)return;
- try{await navigator.share({files:[exportFile],title:exportFile.name})}
- catch(err){if(err&&err.name!=='AbortError')toast('Could not open the share menu. Tap Download video instead.')}
-};
+        function txt(c, s, x, y, size, fill, align, maxW) {
+            let z = size;
+            c.font = F(z);
+            const w = c.measureText(s).width;
+            if (w > maxW) {
+                z = size * maxW / w;
+                c.font = F(z)
+            }
+            c.fillStyle = fill;
+            c.textAlign = align || 'left';
+            c.textBaseline = 'middle';
+            c.fillText(s, x, y)
+        }
 
-/* enhance */
-const ENH=['eb','ec','es','ew','ek'];let lastK=-1;
-function enhLabels(){for(const id of ENH)$('#v'+id).textContent=$('#'+id).value}
-function setEnh(o){for(const k in o)$('#'+k).value=o[k];enhLabels()}
-function enhFilter(){
- if(!('filter' in ctx))return '';
- const b=+$('#eb').value,c=+$('#ec').value,s=+$('#es').value,k=+$('#ek').value,p=[];
- if(b)p.push('brightness('+(1+b/100)+')');if(c)p.push('contrast('+(1+c/100)+')');if(s)p.push('saturate('+(1+s/100)+')');
- if(k>0){if(k!==lastK){const q=k/125;$('#cm').setAttribute('kernelMatrix',`0 ${-q} 0 ${-q} ${1+4*q} ${-q} 0 ${-q} 0`);lastK=k}p.push('url(#sharp)')}
- return p.join(' ');
-}
-function tint(c,w,h){const t=+$('#ew').value;if(!t)return;c.save();c.globalCompositeOperation='soft-light';c.fillStyle=t>0?`rgba(255,150,40,${t/120})`:`rgba(40,130,255,${-t/120})`;c.fillRect(0,0,w,h);c.restore()}
-function applyAudio(){
- if(!AU)return;const on=$('#ea').checked;
- AU.hp.frequency.value=on?90:10;AU.lp.frequency.value=on?14000:22000;
- AU.cp.threshold.value=on?-30:0;AU.cp.ratio.value=on?3:1;AU.cp.knee.value=20;AU.mk.gain.value=on?1.7:1;
-}
-function setSize(){if(exporting)return;const k=+$('#er').value;cv.width=Math.round(FMT[fmt][0]*k);cv.height=Math.round(FMT[fmt][1]*k)}
-for(const id of ENH)$('#'+id).oninput=enhLabels;
-$('#ea').onchange=applyAudio;$('#er').onchange=setSize;
-$('#rst').onclick=()=>setEnh({eb:0,ec:0,es:0,ew:0,ek:0});
-if(!('filter' in ctx))$('#ah').textContent='This browser cannot preview color changes. Use Chrome for Auto enhance.';
-$('#auto').onclick=async()=>{
- if(!dur||exporting)return;
- const btn=$('#auto');btn.disabled=true;$('#ah').textContent='Checking your video...';
- const was=vid.currentTime;vid.pause();previewing=false;$('#play').textContent='Play cut';
- const sc=document.createElement('canvas');sc.width=96;sc.height=96;const x=sc.getContext('2d',{willReadFrequently:true});
- const a=+$('#rs').value,b=+$('#re').value;let n=0,L=0,L2=0,S=0,R=0,B=0;
- try{
-  for(let i=0;i<6;i++){
-   await seek(a+(b-a)*(i+.5)/6);x.drawImage(vid,0,0,96,96);
-   const d=x.getImageData(0,0,96,96).data;
-   for(let p=0;p<d.length;p+=4){const r=d[p]/255,g=d[p+1]/255,bl=d[p+2]/255,y=.2126*r+.7152*g+.0722*bl,mx=Math.max(r,g,bl),mn=Math.min(r,g,bl);L+=y;L2+=y*y;S+=mx?(mx-mn)/mx:0;R+=r;B+=bl;n++}
-  }
-  const m=L/n,sd=Math.sqrt(Math.max(0,L2/n-m*m)),sat=S/n,cast=(B-R)/n,cl=(v,lo,hi)=>Math.round(Math.min(hi,Math.max(lo,v)));
-  const bf=Math.min(1.6,Math.max(.8,.47/Math.max(m,.05))),cf=Math.min(1.35,Math.max(.9,.22/Math.max(sd,.04))),sf=Math.min(1.5,Math.max(.9,.4/Math.max(sat,.05)));
-  const o={eb:cl((bf-1)*100,-50,50),ec:cl((cf-1)*100,-50,50),es:cl((sf-1)*100,-50,50),ew:cl(cast*120,-25,25),ek:Math.min(vid.videoWidth,vid.videoHeight)<720?55:35};
-  setEnh(o);$('#ea').checked=true;applyAudio();
-  $('#ah').textContent='Auto enhance applied: brightness '+o.eb+', contrast '+o.ec+', color '+o.es+', warmth '+o.ew+', sharpness '+o.ek+', clean audio on. Fine-tune below or tap Reset.';
- }catch(_){$('#ah').textContent='Could not check this video. Use the sliders instead.'}
- await seek(was);btn.disabled=false;
-};
-chips();requestAnimationFrame(draw);
-</script>
-</body></html>
+        function overlay(c, w, h) {
+            const T = TPL[tpl];
+            if (T.style === 'none') return;
+            const u = w / 720,
+                tall = h / w > 1.5,
+                tm = tall ? h * .08 : h * .04,
+                bm = tall ? h * .13 : h * .04;
+            const head = $('#fh').value.trim() || T.label,
+                sub = $('#fs').value.trim(),
+                price = $('#fp').value.trim(),
+                phone = $('#fph').value.trim(),
+                shop = $('#fsh').value.trim();
+            const y0 = h - bm - 110 * u,
+                card = T.style === 'card';
+            c.save();
+            if (!card) {
+                const g = c.createLinearGradient(0, y0 - 120 * u, 0, h);
+                g.addColorStop(0, 'rgba(0,0,0,0)');
+                g.addColorStop(1, 'rgba(0,0,0,.85)');
+                c.fillStyle = g;
+                c.fillRect(0, y0 - 120 * u, w, h - y0 + 120 * u)
+            }
+            if (card) {
+                c.fillStyle = '#fff';
+                rr(c, w * .04, y0 - 18 * u, w * .92, 146 * u, 18 * u);
+                c.fill()
+            }
+            /* top */
+            if (T.style === 'banner' || card) {
+                if (head) {
+                    c.fillStyle = T.c1;
+                    rr(c, w * .06, tm, w * .88, 84 * u, 14 * u);
+                    c.fill();
+                    txt(c, head, w / 2, tm + 44 * u, 52 * u, T.c2, 'center', w * .8)
+                }
+            }
+            if (T.style === 'ribbon' && head) {
+                c.save();
+                c.translate(100 * u, 100 * u);
+                c.rotate(-Math.PI / 4);
+                c.fillStyle = T.c1;
+                c.fillRect(-210 * u, -32 * u, 420 * u, 64 * u);
+                txt(c, head, 0, 2 * u, 38 * u, T.c2, 'center', 330 * u);
+                c.restore()
+            }
+            /* extra line */
+            if (sub) {
+                c.shadowColor = 'rgba(0,0,0,.8)';
+                c.shadowBlur = 8 * u;
+                txt(c, sub, w / 2, y0 - card * 0 - 60 * u - (card ? 10 * u : 0), 40 * u, '#fff', 'center', w * .9);
+                c.shadowBlur = 0
+            }
+            /* bottom */
+            const dark = card ? '#161a20' : '#fff',
+                lx = w * .08;
+            let tx = lx;
+            if (logo) {
+                const k = 76 * u / Math.max(logo.width, logo.height);
+                const lw = logo.width * k,
+                    lh = logo.height * k;
+                c.drawImage(logo, lx, y0 + (card ? 4 : 0) + (100 * u - lh) / 2, lw, lh);
+                tx = lx + lw + 14 * u
+            }
+            const room = w * .92 - tx - (price ? 190 * u : 0);
+            if (shop) txt(c, shop, tx, y0 + (card ? 18 : 28) * u, 40 * u, dark, 'left', room);
+            if (phone) txt(c, phone, tx, y0 + (card ? 66 : 76) * u, 32 * u, card ? T.c1 : '#ffe9a8', 'left', room);
+            if (price) {
+                c.font = F(60 * u);
+                const pw = Math.min(c.measureText(price).width + 44 * u, w * .42),
+                    px = w * .94 - pw;
+                if (card) {
+                    txt(c, price, w * .94, y0 + 46 * u, 64 * u, T.c1, 'right', w * .42)
+                } else {
+                    c.fillStyle = T.c1;
+                    rr(c, px, y0, pw, 100 * u, 16 * u);
+                    c.fill();
+                    txt(c, price, px + pw / 2, y0 + 52 * u, 60 * u, T.c2, 'center', pw - 24 * u)
+                }
+            }
+            c.restore();
+        }
+
+        function draw(now) {
+            if (exporting && now - lastExportFrame < 1000 / +$('#fps').value) {
+                requestAnimationFrame(draw);
+                return
+            }
+            if (exporting) lastExportFrame = now;
+            const w = cv.width,
+                h = cv.height;
+            ctx.fillStyle = '#10141a';
+            ctx.fillRect(0, 0, w, h);
+            const source = mediaType === 'image' ? still : (vid.videoWidth ? vid : null);
+            if (source) {
+                const vw = mediaType === 'image' ? still.naturalWidth : vid.videoWidth,
+                    vh = mediaType === 'image' ? still.naturalHeight : vid.videoHeight,
+                    kc = Math.max(w / vw, h / vh),
+                    kf = Math.min(w / vw, h / vh);
+                const EF = enhFilter();
+                if (fit === 'cover') {
+                    ctx.save();
+                    if (EF) ctx.filter = EF;
+                    ctx.drawImage(source, (w - vw * kc) / 2, (h - vh * kc) / 2, vw * kc, vh * kc);
+                    ctx.restore()
+                } else {
+                    ctx.save();
+                    if ('filter' in ctx) ctx.filter = 'blur(28px) brightness(.6)';
+                    ctx.drawImage(source, (w - vw * kc) / 2, (h - vh * kc) / 2, vw * kc, vh * kc);
+                    ctx.restore();
+                    ctx.save();
+                    if (EF) ctx.filter = EF;
+                    ctx.drawImage(source, (w - vw * kf) / 2, (h - vh * kf) / 2, vw * kf, vh * kf);
+                    ctx.restore()
+                }
+            } else {
+                ctx.fillStyle = '#2a323c';
+                ctx.font = F(w / 14);
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('Your image or video here', w / 2, h / 2)
+            }
+            if (source) tint(ctx, w, h);
+            overlay(ctx, w, h);
+            requestAnimationFrame(draw);
+        }
+        document.fonts && document.fonts.load('700 40px "Barlow Condensed"');
+
+        /* audio routing so export is silent but keeps sound */
+        function audio() {
+            if (AU) return AU;
+            const ac = new(window.AudioContext || window.webkitAudioContext)();
+            const src = ac.createMediaElementSource(vid),
+                dest = ac.createMediaStreamDestination();
+            const hp = ac.createBiquadFilter(),
+                lp = ac.createBiquadFilter(),
+                cp = ac.createDynamicsCompressor(),
+                mk = ac.createGain(),
+                lim = ac.createDynamicsCompressor();
+            hp.type = 'highpass';
+            lp.type = 'lowpass';
+            lim.threshold.value = -2;
+            lim.knee.value = 0;
+            lim.ratio.value = 20;
+            lim.attack.value = .003;
+            lim.release.value = .1;
+            src.connect(hp);
+            hp.connect(lp);
+            lp.connect(cp);
+            cp.connect(mk);
+            mk.connect(lim);
+            lim.connect(dest);
+            lim.connect(ac.destination);
+            AU = {
+                ac,
+                src,
+                dest,
+                out: lim,
+                hp,
+                lp,
+                cp,
+                mk
+            };
+            applyAudio();
+            return AU;
+        }
+
+        /* upload */
+        function beginMedia(type, file) {
+            if (objUrl) URL.revokeObjectURL(objUrl);
+            if (exportUrl) URL.revokeObjectURL(exportUrl);
+            exportUrl = null;
+            exportFile = null;
+            $('#dl').hidden = true;
+            $('#share').hidden = true;
+            objUrl = URL.createObjectURL(file);
+            mediaType = type;
+            still = null;
+            vid.pause();
+            previewing = false;
+            $('#play').textContent = 'Play cuts';
+            $('#play').hidden = type === 'image';
+            $('#ilabel').hidden = type !== 'image';
+            $('#ea').disabled = type === 'image';
+            $('#fn').textContent = file.name;
+            $('#info').textContent = 'Loading media...';
+            segs = [];
+            renderSegs();
+            for (const id of['rs', 're']) $('#' + id).disabled = true;
+            for (const id of['play', 'addcut', 'clr', 'go', 'auto']) $('#' + id).disabled = true;
+            return objUrl;
+        }
+
+        function mediaReady(seconds) {
+            dur = seconds;
+            for (const id of['rs', 're']) {
+                const r = $('#' + id);
+                r.max = dur;
+                r.disabled = false
+            }
+            $('#rs').value = 0;
+            $('#re').value = dur;
+            if (mediaType === 'video') vid.currentTime = 0;
+            $('#play').disabled = mediaType !== 'video';
+            for (const id of['addcut', 'clr', 'go', 'auto']) $('#' + id).disabled = false;
+            labels();
+        }
+
+        $('#up').onclick = () => $('#vf').click();
+        $('#upi').onclick = () => $('#if').click();
+
+        function loadMediaFile(file) {
+            if (file.type.startsWith('video/')) {
+                vid.src = beginMedia('video', file);
+                vid.load();
+            } else if (file.type.startsWith('image/')) {
+                const src = beginMedia('image', file),
+                    image = new Image();
+                image.onload = () => {
+                    if (mediaType !== 'image') return;
+                    still = image;
+                    const seconds = Math.max(1, Math.min(60, +$('#itime').value || 5));
+                    $('#itime').value = seconds;
+                    mediaReady(seconds);
+                    $('#info').textContent = `${image.naturalWidth}x${image.naturalHeight}, still image`;
+                };
+                image.onerror = () => toast('This image could not be opened. Try a JPG or PNG file.');
+                image.src = src;
+            } else {
+                toast('Choose a supported image or video file.');
+            }
+        }
+        $('#vf').onchange = e => {
+            const f = e.target.files[0];
+            if (!f) return;
+            loadMediaFile(f);
+            e.target.value = '';
+        };
+        $('#if').onchange = e => {
+            const f = e.target.files[0];
+            if (!f) return;
+            loadMediaFile(f);
+            e.target.value = '';
+        };
+        document.addEventListener('dragover', e => {
+            if (e.dataTransfer && Array.from(e.dataTransfer.types).includes('Files')) {
+                e.preventDefault();
+                $('.pv').classList.add('dragover');
+            }
+        });
+        document.addEventListener('dragleave', e => {
+            if (!e.relatedTarget) $('.pv').classList.remove('dragover');
+        });
+        document.addEventListener('drop', e => {
+            $('.pv').classList.remove('dragover');
+            if (!e.dataTransfer || !e.dataTransfer.files.length) return;
+            e.preventDefault();
+            loadMediaFile(e.dataTransfer.files[0]);
+        });
+        $('#itime').onchange = () => {
+            if (mediaType !== 'image' || !still) return;
+            dur = Math.max(1, Math.min(60, +$('#itime').value || 5));
+            $('#itime').value = dur;
+            $('#rs').max = dur;
+            $('#re').max = dur;
+            $('#rs').value = 0;
+            $('#re').value = dur;
+            segs = [];
+            renderSegs();
+            labels();
+        };
+        vid.onloadedmetadata = () => {
+            if (mediaType !== 'video') return;
+            mediaReady(vid.duration);
+            $('#info').textContent = `${vid.videoWidth}x${vid.videoHeight}, ${fmtT(dur)}`;
+        };
+        vid.onerror = () => {
+            if (mediaType === 'video') toast('This video could not be opened. Try an MP4 file.');
+        };
+
+        function labels() {
+            $('#ts').textContent = fmtT(+$('#rs').value);
+            $('#te').textContent = fmtT(+$('#re').value);
+            total()
+        }
+        $('#rs').oninput = () => {
+            const r = $('#rs'),
+                e = $('#re');
+            if (+r.value > +e.value - .1) r.value = Math.max(0, +e.value - .1);
+            if (mediaType === 'video') vid.currentTime = +r.value;
+            labels()
+        };
+        $('#re').oninput = () => {
+            const r = $('#rs'),
+                e = $('#re');
+            if (+e.value < +r.value + .1) e.value = Math.min(dur, +r.value + .1);
+            if (mediaType === 'video') vid.currentTime = Math.max(0, +e.value - .05);
+            labels()
+        };
+        $('#fit').onchange = e => fit = e.target.value;
+
+        /* cuts */
+        function list() {
+            return segs.length ? segs : (dur ? [{
+                s: +$('#rs').value,
+                e: +$('#re').value
+            }] : [])
+        }
+
+        function total() {
+            const t = list().reduce((a, g) => a + g.e - g.s, 0);
+            if (dur) $('#tot').textContent = segs.length ? `${segs.length} cut${segs.length>1?'s':''}, total ${fmtT(t)}` : `Exporting the range above: ${fmtT(t)}. Add several cuts to join them in order.`
+        }
+
+        function renderSegs() {
+            $('#segs').innerHTML = segs.map((g, i) => `<div class="seg"><span>Cut ${i+1}: ${fmtT(g.s)} to ${fmtT(g.e)}</span><button class="btn sm" data-x="${i}">Remove</button></div>`).join('');
+            total();
+        }
+        $('#addcut').onclick = () => {
+            segs.push({
+                s: +$('#rs').value,
+                e: +$('#re').value
+            });
+            renderSegs()
+        };
+        $('#clr').onclick = () => {
+            segs = [];
+            renderSegs()
+        };
+        $('#segs').onclick = e => {
+            const b = e.target.closest('[data-x]');
+            if (b) {
+                segs.splice(+b.dataset.x, 1);
+                renderSegs()
+            }
+        };
+
+        /* preview */
+        $('#play').onclick = async() => {
+            if (previewing) {
+                vid.pause();
+                previewing = false;
+                $('#play').textContent = 'Play cuts';
+                return
+            }
+            const cuts = list();
+            if (!cuts.length) return;
+            previewing = true;
+            $('#play').textContent = 'Pause';
+            try {
+                await audio().ac.resume();
+                for (const cut of cuts) {
+                    if (!previewing) break;
+                    await seek(cut.s);
+                    if (!previewing) break;
+                    await vid.play();
+                    await new Promise(resolve => {
+                        const check = () => {
+                            if (!previewing || vid.currentTime >= cut.e || vid.ended) {
+                                vid.pause();
+                                resolve();
+                            } else requestAnimationFrame(check);
+                        };
+                        check();
+                    });
+                }
+            } catch (_) {
+                toast('Preview could not play this video.');
+            } finally {
+                previewing = false;
+                vid.pause();
+                $('#play').textContent = 'Play cuts';
+            }
+        };
+
+        /* logo */
+        $('#lg').onclick = () => $('#lf').click();
+        $('#lf').onchange = e => {
+            const f = e.target.files[0];
+            if (!f) return;
+            const i = new Image();
+            i.onload = () => {
+                logo = i;
+                $('#lgx').hidden = false
+            };
+            i.src = URL.createObjectURL(f)
+        };
+        $('#lgx').onclick = () => {
+            logo = null;
+            $('#lgx').hidden = true
+        };
+
+        /* export */
+        const seek = t => new Promise(r => {
+            if (Math.abs(vid.currentTime - t) < .02) return r();
+            vid.onseeked = () => {
+                vid.onseeked = null;
+                r()
+            };
+            vid.currentTime = t
+        });
+        $('#go').onclick = async() => {
+            if (exporting || !dur) return;
+            if (!window.MediaRecorder || !cv.captureStream) {
+                toast('This browser cannot record video. Try Chrome.');
+                return
+            }
+            if (exportUrl) {
+                URL.revokeObjectURL(exportUrl);
+                exportUrl = null;
+                exportFile = null
+            }
+            $('#share').hidden = true;
+            $('#dl').hidden = true;
+            $('#up').disabled = true;
+            $('#upi').disabled = true;
+            const L = list(),
+                all = L.reduce((a, g) => a + g.e - g.s, 0);
+            lastExportFrame = 0;
+            exporting = true;
+            previewing = false;
+            vid.pause();
+            $('#go').disabled = true;
+            $('#bw').hidden = false;
+            $('#bi').style.width = '0';
+            $('#play').textContent = 'Play cuts';
+            let a, st, rec, restoreAudio = false;
+            try {
+                if (mediaType === 'video') {
+                    a = audio();
+                    await a.ac.resume();
+                    a.out.disconnect(a.ac.destination);
+                    restoreAudio = true;
+                }
+                st = cv.captureStream(+$('#fps').value);
+                if (a) a.dest.stream.getAudioTracks().forEach(t => st.addTrack(t));
+                const mt = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm'].find(m => MediaRecorder.isTypeSupported(m));
+                rec = new MediaRecorder(st, mt ? {
+                    mimeType: mt,
+                    videoBitsPerSecond: +$('#eq').value
+                } : {});
+                const ch = [];
+                rec.ondataavailable = e => e.data.size && ch.push(e.data);
+                const done = new Promise((resolve, reject) => {
+                    rec.onstop = resolve;
+                    rec.onerror = e => reject(e.error || new Error('The browser could not record this video.'))
+                });
+                rec.start(500);
+                let doneT = 0;
+                for (const g of L) {
+                    if (mediaType === 'video') {
+                        await seek(g.s);
+                        await vid.play();
+                        await new Promise(res => {
+                            const chk = () => {
+                                const p = vid.currentTime - g.s;
+                                $('#bi').style.width = Math.min(100, (doneT + p) / all * 100) + '%';
+                                if (vid.currentTime >= g.e || vid.ended) res();
+                                else requestAnimationFrame(chk)
+                            };
+                            chk()
+                        });
+                        vid.pause();
+                    } else {
+                        const started = performance.now(),
+                            span = (g.e - g.s) * 1000;
+                        await new Promise(res => {
+                            const tick = now => {
+                                $('#bi').style.width = Math.min(100, (doneT + (now - started) / 1000) / all * 100) + '%';
+                                if (now - started >= span) res();
+                                else requestAnimationFrame(tick);
+                            };
+                            requestAnimationFrame(tick);
+                        });
+                    }
+                    doneT += g.e - g.s;
+                }
+                rec.stop();
+                await done;
+                const type = rec.mimeType || 'video/webm',
+                    ext = type.includes('mp4') ? 'mp4' : 'webm';
+                const filename = `${(TPL[tpl].n+'-'+fmt).replace(/[^\w]+/g,'-')}-${Date.now()}.${ext}`;
+                exportFile = new File(ch, filename, {
+                    type
+                });
+                exportUrl = URL.createObjectURL(exportFile);
+                const dl = $('#dl');
+                dl.href = exportUrl;
+                dl.download = filename;
+                dl.hidden = false;
+                if (navigator.share && navigator.canShare && navigator.canShare({
+                        files: [exportFile]
+                    })) $('#share').hidden = false;
+                toast('Export complete. Tap Save / share or Download video.');
+            } catch (err) {
+                toast(err instanceof Error ? 'Export failed: ' + err.message : 'Export failed. Try a shorter video.')
+            } finally {
+                try {
+                    if (rec && rec.state !== 'inactive') rec.stop()
+                } catch (_) {}
+                if (st) st.getVideoTracks().forEach(t => t.stop());
+                if (a && restoreAudio) a.out.connect(a.ac.destination);
+                exporting = false;
+                $('#up').disabled = false;
+                $('#upi').disabled = false;
+                $('#go').disabled = false;
+                $('#bw').hidden = true;
+                vid.pause()
+            }
+        };
+        $('#share').onclick = async() => {
+            if (!exportFile) return;
+            try {
+                await navigator.share({
+                    files: [exportFile],
+                    title: exportFile.name
+                })
+            } catch (err) {
+                if (err && err.name !== 'AbortError') toast('Could not open the share menu. Tap Download video instead.')
+            }
+        };
+
+        /* enhance */
+        const ENH = ['eb', 'ec', 'es', 'ew', 'ek'];
+        let lastK = -1;
+
+        function enhLabels() {
+            for (const id of ENH) $('#v' + id).textContent = $('#' + id).value
+        }
+
+        function setEnh(o) {
+            for (const k in o) $('#' + k).value = o[k];
+            enhLabels()
+        }
+
+        function enhFilter() {
+            if (!('filter' in ctx)) return '';
+            const b = +$('#eb').value,
+                c = +$('#ec').value,
+                s = +$('#es').value,
+                k = +$('#ek').value,
+                p = [];
+            if (b) p.push('brightness(' + (1 + b / 100) + ')');
+            if (c) p.push('contrast(' + (1 + c / 100) + ')');
+            if (s) p.push('saturate(' + (1 + s / 100) + ')');
+            if (k > 0) {
+                if (k !== lastK) {
+                    const q = k / 125;
+                    $('#cm').setAttribute('kernelMatrix', `0 ${-q} 0 ${-q} ${1+4*q} ${-q} 0 ${-q} 0`);
+                    lastK = k
+                }
+                p.push('url(#sharp)')
+            }
+            return p.join(' ');
+        }
+
+        function tint(c, w, h) {
+            const t = +$('#ew').value;
+            if (!t) return;
+            c.save();
+            c.globalCompositeOperation = 'soft-light';
+            c.fillStyle = t > 0 ? `rgba(255,150,40,${t/120})` : `rgba(40,130,255,${-t/120})`;
+            c.fillRect(0, 0, w, h);
+            c.restore()
+        }
+
+        function applyAudio() {
+            if (!AU) return;
+            const on = $('#ea').checked;
+            AU.hp.frequency.value = on ? 90 : 10;
+            AU.lp.frequency.value = on ? 14000 : 22000;
+            AU.cp.threshold.value = on ? -30 : 0;
+            AU.cp.ratio.value = on ? 3 : 1;
+            AU.cp.knee.value = 20;
+            AU.mk.gain.value = on ? 1.7 : 1;
+        }
+
+        function setSize() {
+            if (exporting) return;
+            const k = +$('#er').value;
+            cv.width = Math.round(FMT[fmt][0] * k);
+            cv.height = Math.round(FMT[fmt][1] * k)
+        }
+        for (const id of ENH) $('#' + id).oninput = enhLabels;
+        $('#ea').onchange = applyAudio;
+        $('#er').onchange = setSize;
+        $('#rst').onclick = () => {
+            setEnh({
+                eb: 0,
+                ec: 0,
+                es: 0,
+                ew: 0,
+                ek: 0
+            });
+            savePreferences();
+        };
+        if (!('filter' in ctx)) $('#ah').textContent = 'This browser cannot preview color changes. Use Chrome for Auto enhance.';
+        $('#auto').onclick = async() => {
+            if (!dur || exporting) return;
+            const btn = $('#auto');
+            btn.disabled = true;
+            $('#ah').textContent = 'Checking your image or video...';
+            const was = vid.currentTime;
+            if (mediaType === 'video') vid.pause();
+            previewing = false;
+            $('#play').textContent = 'Play cuts';
+            const sc = document.createElement('canvas');
+            sc.width = 96;
+            sc.height = 96;
+            const x = sc.getContext('2d', {
+                willReadFrequently: true
+            });
+            const a = +$('#rs').value,
+                b = +$('#re').value;
+            let n = 0,
+                L = 0,
+                L2 = 0,
+                S = 0,
+                R = 0,
+                B = 0;
+            try {
+                for (let i = 0; i < 6; i++) {
+                    if (mediaType === 'video') await seek(a + (b - a) * (i + .5) / 6);
+                    x.drawImage(mediaType === 'image' ? still : vid, 0, 0, 96, 96);
+                    const d = x.getImageData(0, 0, 96, 96).data;
+                    for (let p = 0; p < d.length; p += 4) {
+                        const r = d[p] / 255,
+                            g = d[p + 1] / 255,
+                            bl = d[p + 2] / 255,
+                            y = .2126 * r + .7152 * g + .0722 * bl,
+                            mx = Math.max(r, g, bl),
+                            mn = Math.min(r, g, bl);
+                        L += y;
+                        L2 += y * y;
+                        S += mx ? (mx - mn) / mx : 0;
+                        R += r;
+                        B += bl;
+                        n++
+                    }
+                }
+                const m = L / n,
+                    sd = Math.sqrt(Math.max(0, L2 / n - m * m)),
+                    sat = S / n,
+                    cast = (B - R) / n,
+                    cl = (v, lo, hi) => Math.round(Math.min(hi, Math.max(lo, v)));
+                const bf = Math.min(1.6, Math.max(.8, .47 / Math.max(m, .05))),
+                    cf = Math.min(1.35, Math.max(.9, .22 / Math.max(sd, .04))),
+                    sf = Math.min(1.5, Math.max(.9, .4 / Math.max(sat, .05)));
+                const o = {
+                    eb: cl((bf - 1) * 100, -50, 50),
+                    ec: cl((cf - 1) * 100, -50, 50),
+                    es: cl((sf - 1) * 100, -50, 50),
+                    ew: cl(cast * 120, -25, 25),
+                    ek: Math.min(mediaType === 'image' ? still.naturalWidth : vid.videoWidth, mediaType === 'image' ? still.naturalHeight : vid.videoHeight) < 720 ? 55 : 35
+                };
+                setEnh(o);
+                if (mediaType === 'video') {
+                    $('#ea').checked = true;
+                    applyAudio();
+                }
+                savePreferences();
+                $('#ah').textContent = 'Auto enhance applied: brightness ' + o.eb + ', contrast ' + o.ec + ', color ' + o.es + ', warmth ' + o.ew + ', sharpness ' + o.ek + (mediaType === 'video' ? ', clean audio on' : '') + '. Fine-tune below or tap Reset.';
+            } catch (_) {
+                $('#ah').textContent = 'Could not check this media. Use the sliders instead.'
+            }
+            if (mediaType === 'video') await seek(was);
+            btn.disabled = false;
+        };
+        loadPreferences();
+        chips();
+        enhLabels();
+        setSize();
+        applyAudio();
+        requestAnimationFrame(draw);
+    </script>
+</body>
+
+</html>
