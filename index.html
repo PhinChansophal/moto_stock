@@ -103,7 +103,7 @@ const TPL={
  none:{n:'No overlay',label:'',style:'none',c1:'#888',c2:'#fff'}
 };
 let fmt='9:16',tpl='arrival',fit='cover',segs=[],logo=null,dur=0,previewing=false,endT=0,exporting=false,objUrl=null,AU=null;
-let exportUrl=null,exportFile=null;
+let exportUrl=null,exportFile=null,lastExportFrame=0;
 const vid=document.createElement('video');vid.playsInline=true;vid.preload='auto';
 vid.style.cssText='position:fixed;width:1px;height:1px;opacity:0;pointer-events:none';document.body.appendChild(vid);
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),3000)}
@@ -149,7 +149,9 @@ function overlay(c,w,h){
   else{c.fillStyle=T.c1;rr(c,px,y0,pw,100*u,16*u);c.fill();txt(c,price,px+pw/2,y0+52*u,60*u,T.c2,'center',pw-24*u)}}
  c.restore();
 }
-function draw(){
+function draw(now){
+ if(exporting&&now-lastExportFrame<1000/30){requestAnimationFrame(draw);return}
+ if(exporting)lastExportFrame=now;
  const w=cv.width,h=cv.height;ctx.fillStyle='#10141a';ctx.fillRect(0,0,w,h);
  if(vid.videoWidth){
   const vw=vid.videoWidth,vh=vid.videoHeight,kc=Math.max(w/vw,h/vh),kf=Math.min(w/vw,h/vh);
@@ -220,7 +222,7 @@ $('#go').onclick=async()=>{
  if(exportUrl){URL.revokeObjectURL(exportUrl);exportUrl=null;exportFile=null}
  $('#share').hidden=true;$('#dl').hidden=true;
  const L=list(),all=L.reduce((a,g)=>a+g.e-g.s,0);
- exporting=true;previewing=false;vid.pause();$('#go').disabled=true;$('#bw').hidden=false;$('#bi').style.width='0';$('#play').textContent='Play cut';
+ lastExportFrame=0;exporting=true;previewing=false;vid.pause();$('#go').disabled=true;$('#bw').hidden=false;$('#bi').style.width='0';$('#play').textContent='Play cut';
  let a,st,rec,restoreAudio=false;
  try{
   a=audio();await a.ac.resume();a.out.disconnect(a.ac.destination);restoreAudio=true;
