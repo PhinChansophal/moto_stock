@@ -367,7 +367,7 @@
                 <div class="row"><label style="flex:1">Fit<select id="fit"><option value="cover">Fill frame (crop)</option><option value="contain">Fit whole media (blur background)</option></select></label></div>
                 <span class="hint" id="fn">Add multiple images or videos to build one sequence. Drag a clip to reorder it.</span>
             </div>
-            <div class="panel">
+            <div class="panel" hidden>
                 <h2>Project</h2>
                 <label>Project name<input type="text" id="projectName" maxlength="40" value="Motorcycle ad"></label>
                 <div class="row"><button class="btn sm" id="saveProject">Save project</button><button class="btn sm" id="openProject">Open project</button><button class="btn sm" id="newProject">New</button><button class="btn sm" id="deleteProject">Delete</button></div>
@@ -418,12 +418,13 @@
             </div>
             <div class="panel">
                 <h2>6. Export</h2>
+                <label>Export preset<select id="exportPreset"><option value="fast">Fast export · 720p · 30 fps</option><option value="tiktok" selected>TikTok HD · 1080p · 30 fps</option><option value="smooth">TikTok Smooth · 1080p · 60 fps</option></select></label>
                 <div class="two"><label>Resolution<select id="er"><option value="1">HD 720p (faster)</option><option value="1.5" selected>Full HD 1080p</option></select></label><label>Frame rate<select id="fps"><option value="30" selected>30 fps</option><option value="60">60 fps (smoother)</option></select></label></div>
                 <label>Quality<select id="eq"><option value="4000000">Standard</option><option value="8000000" selected>High</option><option value="12000000">Maximum</option></select></label>
                 <button class="btn red" id="go" title="Export video (Ctrl+Enter)" disabled>Export video</button>
                 <div class="row"><button class="btn red" id="share" hidden>Save / share to phone</button><a class="btn" id="dl" hidden>Download video</a></div>
                 <div class="bar" id="bw" hidden><i id="bi"></i></div>
-                <span class="hint">TikTok: use 9:16 and Full HD. Choose 60 fps when your source is 60 fps. Export runs in real time. MP4 is used when supported; otherwise the browser downloads WebM, which may need conversion before posting. On phone, use Save / share to phone or Download video.</span>
+                <span class="hint" id="exportHint">TikTok HD is the recommended balance. Fast export lowers resolution and processing load. Browser video export runs in real time, so a 20-second sequence takes about 20 seconds. Choose Smooth only when your source is 60 fps. MP4 is used when supported; otherwise WebM may need conversion before posting.</span>
             </div>
         </div>
     </div>
@@ -655,6 +656,7 @@
                 overlayOffsetX,
                 overlayOffsetY,
                 duration: +$('#itime').value,
+                exportPreset: $('#exportPreset').value,
                 resolution: $('#er').value,
                 fps: $('#fps').value,
                 quality: $('#eq').value
@@ -690,10 +692,11 @@
                 for (const [id, value] of[['er', preferences.resolution], ['fps', preferences.fps], ['eq', preferences.quality]]) {
                     if (Array.from($('#' + id).options).some(option => option.value === String(value))) $('#' + id).value = value;
                 }
+                if (['fast', 'tiktok', 'smooth'].includes(preferences.exportPreset)) $('#exportPreset').value = preferences.exportPreset;
             } catch (_) {}
         }
 
-        const prefControls = '#fh,#fs,#fp,#fph,#fsh,#itime,#eb,#ec,#es,#ew,#ek,#ea,#fit,#er,#fps,#eq,#musicVolume,#safeGuide';
+        const prefControls = '#fh,#fs,#fp,#fph,#fsh,#itime,#eb,#ec,#es,#ew,#ek,#ea,#fit,#er,#fps,#eq,#musicVolume,#safeGuide,#exportPreset';
         document.addEventListener('input', e => {
             if (e.target.matches(prefControls)) savePreferences();
         });
@@ -718,6 +721,47 @@
             $('#tplSelect').value = tpl;
             $('#fh').placeholder = TPL[tpl].label || 'Headline';
         }
+
+        function applyExportPreset(preset) {
+            const settings = {
+                fast: {
+                    resolution: '1',
+                    fps: '30',
+                    quality: '4000000'
+                },
+                tiktok: {
+                    resolution: '1.5',
+                    fps: '30',
+                    quality: '8000000'
+                },
+                smooth: {
+                    resolution: '1.5',
+                    fps: '60',
+                    quality: '12000000'
+                }
+            }[preset] || {
+                resolution: '1.5',
+                fps: '30',
+                quality: '8000000'
+            };
+            $('#er').value = settings.resolution;
+            $('#fps').value = settings.fps;
+            $('#eq').value = settings.quality;
+            setSize();
+            savePreferences();
+        }
+
+        function syncExportPreset() {
+            $('#exportPreset').value = $('#fps').value === '60' ? 'smooth' : ($('#er').value === '1' ? 'fast' : 'tiktok');
+            savePreferences();
+        }
+        $('#exportPreset').onchange = e => applyExportPreset(e.target.value);
+        $('#er').onchange = () => {
+            setSize();
+            syncExportPreset();
+        };
+        $('#fps').onchange = syncExportPreset;
+        $('#eq').onchange = savePreferences;
         document.addEventListener('click', e => {
             const f = e.target.closest('[data-f]');
             if (f) {
@@ -1458,6 +1502,7 @@
         /* media timeline */
         function renderTimeline() {
             $('#timeline').innerHTML = clips.map((clip, index) => `<div class="clip-item${index===activeClipIndex?' active':''}" draggable="true" data-clip="${index}"><button class="btn sm clip-name" data-select="${index}" title="Select ${clip.name}">${index+1}. ${clip.type==='image'?'Image':'Video'} · ${clip.name} · ${fmtT(clip.duration)}</button><div class="row"><button class="btn sm" data-up="${index}" title="Move earlier" ${index===0?'disabled':''}>↑</button><button class="btn sm" data-down="${index}" title="Move later" ${index===clips.length-1?'disabled':''}>↓</button><button class="btn sm" data-remove="${index}" title="Remove clip">×</button></div></div>`).join('');
+            updateExportEstimate();
         }
 
         function mediaReady(seconds) {
@@ -1738,10 +1783,18 @@
             });
         }
 
+        function updateExportEstimate() {
+            const seconds = timelineEntries().reduce((sum, entry) => sum + entry.e - entry.s, 0);
+            const selected = $('#exportPreset').selectedOptions[0].textContent;
+            const estimate = seconds ? `Estimated export time: about ${Math.ceil(seconds)} seconds for ${fmtT(seconds)} of media.` : 'Add media to see the export-time estimate.';
+            $('#exportHint').textContent = `${selected}. ${estimate} Browser encoding runs in real time; Fast lowers resolution and processing load, not elapsed duration.`;
+        }
+
         function total() {
             const entries = timelineEntries();
             const seconds = entries.reduce((sum, entry) => sum + entry.e - entry.s, 0);
             $('#tot').textContent = clips.length ? `${clips.length} clip${clips.length===1?'':'s'} in sequence, total ${fmtT(seconds)}. Cuts on the selected clip are applied in order.` : 'Add media to build your sequence.';
+            updateExportEstimate();
         }
 
         function renderSegs() {
@@ -2122,11 +2175,17 @@
             if (exporting) return;
             const k = +$('#er').value;
             cv.width = Math.round(FMT[fmt][0] * k);
-            cv.height = Math.round(FMT[fmt][1] * k)
+            cv.height = Math.round(FMT[fmt][1] * k);
+            updateExportEstimate();
         }
         for (const id of ENH) $('#' + id).oninput = enhLabels;
         $('#ea').onchange = applyAudio;
-        $('#er').onchange = setSize;
+        $('#er').onchange = () => {
+            setSize();
+            syncExportPreset();
+        };
+        $('#fps').onchange = syncExportPreset;
+        $('#eq').onchange = savePreferences;
         $('#rst').onclick = () => {
             setEnh({
                 eb: 0,
@@ -2212,9 +2271,10 @@
         loadPreferences();
         chips();
         enhLabels();
+        $('#exportPreset').value = $('#fps').value === '60' ? 'smooth' : ($('#er').value === '1' ? 'fast' : 'tiktok');
+        applyExportPreset($('#exportPreset').value);
         setSize();
         applyAudio();
-        refreshProjectList().catch(() => {});
         requestAnimationFrame(draw);
     </script>
 </body>
