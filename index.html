@@ -82,8 +82,9 @@ input[type=range]{width:100%;accent-color:var(--red)}
  <div class="panel"><h2>6. Export</h2>
   <div class="two"><label>Resolution<select id="er"><option value="1">HD 720p (faster)</option><option value="1.5">Full HD 1080p</option></select></label><label>Quality<select id="eq"><option value="4000000">Standard</option><option value="8000000" selected>High</option><option value="12000000">Maximum</option></select></label></div>
   <button class="btn red" id="go" disabled>Export video</button>
+  <div class="row"><button class="btn red" id="share" hidden>Save / share to phone</button><a class="btn" id="dl" hidden>Download video</a></div>
   <div class="bar" id="bw" hidden><i id="bi"></i></div>
-  <span class="hint">Export runs in real time, so a 30 second video takes about 30 seconds. Keep this screen open until it finishes; the video will download to your device.</span>
+  <span class="hint">Export runs in real time, so a 30 second video takes about 30 seconds. When it finishes, tap Save / share to phone and choose Save Video or your Gallery app, or tap Download video. The browser may save it to Downloads first.</span>
  </div>
 </div>
 </div>
@@ -102,6 +103,7 @@ const TPL={
  none:{n:'No overlay',label:'',style:'none',c1:'#888',c2:'#fff'}
 };
 let fmt='9:16',tpl='arrival',fit='cover',segs=[],logo=null,dur=0,previewing=false,endT=0,exporting=false,objUrl=null,AU=null;
+let exportUrl=null,exportFile=null;
 const vid=document.createElement('video');vid.playsInline=true;vid.preload='auto';
 vid.style.cssText='position:fixed;width:1px;height:1px;opacity:0;pointer-events:none';document.body.appendChild(vid);
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),3000)}
@@ -215,15 +217,18 @@ const seek=t=>new Promise(r=>{if(Math.abs(vid.currentTime-t)<.02)return r();vid.
 $('#go').onclick=async()=>{
  if(exporting||!dur)return;
  if(!window.MediaRecorder||!cv.captureStream){toast('This browser cannot record video. Try Chrome.');return}
+ if(exportUrl){URL.revokeObjectURL(exportUrl);exportUrl=null;exportFile=null}
+ $('#share').hidden=true;$('#dl').hidden=true;
  const L=list(),all=L.reduce((a,g)=>a+g.e-g.s,0);
  exporting=true;previewing=false;vid.pause();$('#go').disabled=true;$('#bw').hidden=false;$('#bi').style.width='0';$('#play').textContent='Play cut';
- const a=audio();await a.ac.resume();a.out.disconnect(a.ac.destination);
- const st=cv.captureStream(30);a.dest.stream.getAudioTracks().forEach(t=>st.addTrack(t));
- const mt=['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9,opus','video/webm'].find(m=>MediaRecorder.isTypeSupported(m));
- const rec=new MediaRecorder(st,mt?{mimeType:mt,videoBitsPerSecond:+$('#eq').value}:{}),ch=[];
- rec.ondataavailable=e=>e.data.size&&ch.push(e.data);
- const done=new Promise((resolve,reject)=>{rec.onstop=resolve;rec.onerror=e=>reject(e.error||new Error('The browser could not record this video.'))});
+ let a,st,rec,restoreAudio=false;
  try{
+  a=audio();await a.ac.resume();a.out.disconnect(a.ac.destination);restoreAudio=true;
+  st=cv.captureStream(30);a.dest.stream.getAudioTracks().forEach(t=>st.addTrack(t));
+  const mt=['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9,opus','video/webm'].find(m=>MediaRecorder.isTypeSupported(m));
+  rec=new MediaRecorder(st,mt?{mimeType:mt,videoBitsPerSecond:+$('#eq').value}:{});const ch=[];
+  rec.ondataavailable=e=>e.data.size&&ch.push(e.data);
+  const done=new Promise((resolve,reject)=>{rec.onstop=resolve;rec.onerror=e=>reject(e.error||new Error('The browser could not record this video.'))});
   rec.start(500);let doneT=0;
   for(const g of L){
    await seek(g.s);await vid.play();
@@ -232,12 +237,18 @@ $('#go').onclick=async()=>{
   }
   rec.stop();await done;
   const type=rec.mimeType||'video/webm',ext=type.includes('mp4')?'mp4':'webm';
-  const url=URL.createObjectURL(new Blob(ch,{type})),link=document.createElement('a');
-  link.href=url;link.download=`${(TPL[tpl].n+'-'+fmt).replace(/[^\w]+/g,'-')}-${Date.now()}.${ext}`;
-  document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
-  toast('Export complete. Your video download has started.');
+  const filename=`${(TPL[tpl].n+'-'+fmt).replace(/[^\w]+/g,'-')}-${Date.now()}.${ext}`;
+  exportFile=new File(ch,filename,{type});exportUrl=URL.createObjectURL(exportFile);
+  const dl=$('#dl');dl.href=exportUrl;dl.download=filename;dl.hidden=false;
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[exportFile]}))$('#share').hidden=false;
+  toast('Export complete. Tap Save / share or Download video.');
  }catch(err){toast(err instanceof Error?'Export failed: '+err.message:'Export failed. Try a shorter video.')}
- finally{try{rec.state!=='inactive'&&rec.stop()}catch(_){}a.out.connect(a.ac.destination);exporting=false;$('#go').disabled=false;$('#bw').hidden=true;vid.pause()}
+ finally{try{if(rec&&rec.state!=='inactive')rec.stop()}catch(_){}if(st)st.getVideoTracks().forEach(t=>t.stop());if(a&&restoreAudio)a.out.connect(a.ac.destination);exporting=false;$('#go').disabled=false;$('#bw').hidden=true;vid.pause()}
+};
+$('#share').onclick=async()=>{
+ if(!exportFile)return;
+ try{await navigator.share({files:[exportFile],title:exportFile.name})}
+ catch(err){if(err&&err.name!=='AbortError')toast('Could not open the share menu. Tap Download video instead.')}
 };
 
 /* enhance */
